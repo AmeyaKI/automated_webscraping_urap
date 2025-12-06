@@ -1,21 +1,20 @@
 from playwright.async_api import async_playwright
 import asyncio
-import random 
+import random, sys
 from datetime import date
 
-
-# use asyncio to scrape multiple webpages AT ONCE
-
-# asyncio.gather(
-#     ...,
-#     ...
-# )
-
-# random wait to avoid automation
+# random wait to avoid detection
 def rnd_wait():
     return random.uniform(1.0, 2.5)
     
-async def scrape_email(page):
+
+async def run_coroutines(page, url):
+    ...
+
+
+
+# scrape each url
+async def scrape_page(page, url=""):
     email_list = []
     
     for _ in range(2):
@@ -46,11 +45,15 @@ async def scrape_email(page):
         
         # Refresh
         await page.reload(wait_until='load')
+        
+    # format each url's list of emails
+    def format_emails(url, email_list):
+        formatted = f"{url}:::{email_list[0]}, {email_list[1]}"
+        return formatted
+    
+    formatted = format_emails(url, email_list)
+    return formatted
 
-    return email_list
-
-def clean_emails(email_list):
-    ...
 # convert results into txt file format
 def results_to_txt(entries):
     today = date.today()
@@ -66,10 +69,22 @@ async def main():
         browser = await pw.chromium.launch(headless=False)
         page = await browser.new_page()
 
-        await page.goto("https://newyork.craigslist.org/brk/roo/d/brooklyn-crown-heights-room-3br-2ba/7897488854.html")
-        email_list = await scrape_email(page)
-
-        print("Emails:", email_list)
+        print("Paste all urls. Press Enter and Cntrl + D to proceed. ")
+        url_list = sys.stdin.readlines()
+        
+        print("Urls Received. Starting collection of emails.")
+        
+        coroutines = [run_coroutines(page, url) for url in url_list]
+        results = await asyncio.gather(*coroutines)
+        
+        results_to_txt(results)
+        
+        # 1 url test case
+        # url = 'https://newyork.craigslist.org/brk/roo/d/brooklyn-crown-heights-room-3br-2ba/7897488854.html'
+        # await page.goto(url)
+        # email_list = await scrape_page(page, url)
+        # print(email_list)
+        
         await browser.close()
 
 if __name__ == '__main__':
