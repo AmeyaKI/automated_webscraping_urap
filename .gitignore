@@ -1,0 +1,5 @@
+/urap-env
+/downloaded_files
+__pycache__
+*.txt
+txt_reformat.py
